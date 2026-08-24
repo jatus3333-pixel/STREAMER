@@ -693,10 +693,31 @@
         }
 
         async function injectAll() {
-            notify("Initializing Injection...");
-            await executeCmd('connectemu');
-            setTimeout(async () => { await executeCmd('aimbotscan'); }, 1000);
+    notify("Checking HD-Player...");
+
+    try {
+        const res = await fetch('http://127.0.0.1:5050/status', {
+            method: 'GET',
+            cache: 'no-store'
+        });
+
+        if (!res.ok) {
+            throw new Error("Local status server error");
         }
+
+        const data = await res.json();
+
+        if (data.isRunning === true) {
+            notify("HD-Player detected", "success");
+        } else {
+            notify("HD-Player is not running", "danger");
+        }
+
+    } catch (e) {
+        console.log("Local status error:", e);
+        notify("Local status.py is not running", "danger");
+    }
+}
 
         async function executeCmd(c) {
             try {
