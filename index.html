@@ -748,20 +748,51 @@
         }
 
         async function monitor() {
-            try {
-                const res = await fetch('/check-hd-player-status');
-                const d = await res.json();
-                const p = document.getElementById('tgt-pill');
-                if (d.isRunning) {
-                    p.innerHTML = '<div class="stat-dot"></div>TARGET';
-                    p.className = 'stat on';
-                    document.getElementById('ping-text').innerText = d.ping;
-                } else {
-                    p.innerHTML = '<div class="stat-dot"></div>TARGET';
-                    p.className = 'stat off';
-                    document.getElementById('ping-text').innerText = '--';
-                }
-            } catch (e) {}
+    const p = document.getElementById('tgt-pill');
+    const ping = document.getElementById('ping-text');
+
+    if (!p || !ping) return;
+
+    try {
+        const start = performance.now();
+
+        const res = await fetch('/check-hd-player-status', {
+            method: 'GET',
+            cache: 'no-store'
+        });
+
+        const end = performance.now();
+
+        if (!res.ok) {
+            throw new Error('Status request failed');
+        }
+
+        const d = await res.json();
+
+        if (d.isRunning === true) {
+            p.innerHTML = '<div class="stat-dot"></div>TARGET';
+            p.className = 'stat on';
+
+            // Backend ka ping ho to woh use hoga
+            ping.innerText =
+                d.ping !== undefined && d.ping !== null
+                    ? d.ping
+                    : Math.round(end - start);
+
+        } else {
+            p.innerHTML = '<div class="stat-dot"></div>TARGET';
+            p.className = 'stat off';
+            ping.innerText = '--';
+        }
+
+    } catch (e) {
+        console.log('Emulator detection error:', e);
+
+        p.innerHTML = '<div class="stat-dot"></div>TARGET';
+        p.className = 'stat off';
+        ping.innerText = '--';
+          }
+
         }
         setInterval(monitor, 3000);
         monitor();
