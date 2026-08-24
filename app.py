@@ -6,7 +6,10 @@ import psutil
 import time
 import threading
 from keyauth import api
-import winreg
+if sys.platform == "win32":
+    import winreg
+else:
+    winreg = None
 from MirrorMem import *
 import ctypes
 from internal import *
@@ -78,14 +81,29 @@ def login():
 
 
 def add_to_startup():
-    file_path = sys.executable 
+    if sys.platform != "win32":
+        print("Windows startup registration skipped.")
+        return
+
+    file_path = sys.executable
     reg_key = r"Software\Microsoft\Windows\CurrentVersion\Run"
+
     try:
-        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, reg_key, 0, winreg.KEY_SET_VALUE) as key:
-            winreg.SetValueEx(key, "MirrorShopApp", 0, winreg.REG_SZ, file_path)
+        with winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            reg_key,
+            0,
+            winreg.KEY_SET_VALUE
+        ) as key:
+            winreg.SetValueEx(
+                key,
+                "MirrorShopApp",
+                0,
+                winreg.REG_SZ,
+                file_path
+            )
     except Exception as e:
         print(f"Startup registration failed: {e}")
-
 
 @app.route('/index.html')
 def dashboard():
@@ -422,4 +440,5 @@ def process_command(command):
 if __name__ == '__main__':
     # Auto-enable streamer mode in background on app startup.
     threading.Thread(target=_auto_enable_streamer_mode, daemon=True).start()
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
