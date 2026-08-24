@@ -631,7 +631,7 @@ class others:
                 pass
 
             # Railway/Linux fallback
-            return str(uuid.getnode())
+            return hashlib.sha256(str(uuid.getnode()).encode()).hexdigest()
 
         elif platform.system() == "Windows":
             winuser = os.getlogin()
