@@ -747,7 +747,9 @@
             }
         }
 
-        async function monitor() {
+const LOCAL_STATUS_URL = 'http://127.0.0.1:5050/status';
+
+async function monitor() {
     const p = document.getElementById('tgt-pill');
     const ping = document.getElementById('ping-text');
 
@@ -756,7 +758,7 @@
     try {
         const start = performance.now();
 
-        const res = await fetch('http://127.0.0.1:5050/status', {
+        const res = await fetch(LOCAL_STATUS_URL, {
             method: 'GET',
             cache: 'no-store'
         });
@@ -772,13 +774,7 @@
         if (d.isRunning === true) {
             p.innerHTML = '<div class="stat-dot"></div>TARGET';
             p.className = 'stat on';
-
-            // Backend ka ping ho to woh use hoga
-            ping.innerText =
-                d.ping !== undefined && d.ping !== null
-                    ? d.ping
-                    : Math.round(end - start);
-
+            ping.innerText = Math.round(end - start);
         } else {
             p.innerHTML = '<div class="stat-dot"></div>TARGET';
             p.className = 'stat off';
@@ -787,15 +783,15 @@
 
     } catch (e) {
         console.log('Emulator detection error:', e);
-
         p.innerHTML = '<div class="stat-dot"></div>TARGET';
         p.className = 'stat off';
         ping.innerText = '--';
-          }
+    }
+}
 
-        }
-        setInterval(monitor, 3000);
-        monitor();
+monitor();
+setInterval(monitor, 3000);
+        
     </script>
 </body>
 </html>
