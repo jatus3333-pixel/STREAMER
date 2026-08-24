@@ -7,7 +7,7 @@ import platform  # check platform
 import subprocess  # needed for mac device
 import hmac # signature checksum
 import hashlib # signature checksum
-
+import uuid
 try:
     if os.name == 'nt':
         import win32security  # get sid (WIN only)
@@ -615,34 +615,39 @@ class api:
 
 
 class others:
+
     @staticmethod
     def get_hwid():
+
         if platform.system() == "Linux":
-            with open("/etc/machine-id") as f:
-                hwid = f.read()
-                return hwid
-        elif platform.system() == 'Windows':
+            try:
+                with open("/etc/machine-id", "r") as f:
+                    hwid = f.read().strip()
+
+                if hwid:
+                    return hwid
+
+            except (FileNotFoundError, PermissionError):
+                pass
+
+            # Railway/Linux fallback
+            return str(uuid.getnode())
+
+        elif platform.system() == "Windows":
             winuser = os.getlogin()
-            sid = win32security.LookupAccountName(None, winuser)[0]  # You can also use WMIC (better than SID, some users had problems with WMIC)
+            sid = win32security.LookupAccountName(None, winuser)[0]
             hwid = win32security.ConvertSidToStringSid(sid)
             return hwid
-            '''
-            cmd = subprocess.Popen(
-                "wmic useraccount where name='%username%' get sid",
+
+        elif platform.system() == "Darwin":
+            output = subprocess.Popen(
+                "ioreg -l | grep IOPlatformSerialNumber",
                 stdout=subprocess.PIPE,
-                shell=True,
-            )
+                shell=True
+            ).communicate()[0]
 
-            (suppost_sid, error) = cmd.communicate()
-
-            suppost_sid = suppost_sid.split(b"\n")[1].strip()
-
-            return suppost_sid.decode()
-
-            ^^ HOW TO DO IT USING WMIC
-            '''
-        elif platform.system() == 'Darwin':
-            output = subprocess.Popen("ioreg -l | grep IOPlatformSerialNumber", stdout=subprocess.PIPE, shell=True).communicate()[0]
             serial = output.decode().split('=', 1)[1].replace(' ', '')
             hwid = serial[1:-2]
             return hwid
+
+        return None
