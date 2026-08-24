@@ -5,20 +5,25 @@ import os
 import psutil
 import time
 import threading
-from keyauth import api
-if sys.platform == "win32":
-    import winreg
-else:
-    winreg = None
-from MirrorMem import *
-import ctypes
-from internal import *
-from injector import *
-from aimbot import *
 import io
 import contextlib
-from detectionbypass import *
-import pymem
+
+from keyauth import api
+
+if sys.platform == "win32":
+    import winreg
+    import ctypes
+
+    from MirrorMem import *
+    from internal import *
+    from injector import *
+    from aimbot import *
+    from detectionbypass import *
+    import pymem
+else:
+    winreg = None
+    ctypes = None
+
 app = Flask(__name__)
 app.secret_key = '666666666'
 
